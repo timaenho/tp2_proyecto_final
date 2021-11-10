@@ -1,10 +1,9 @@
-import {MongoClient} from 'mongodb';
-import dotenv from 'dotenv'
-
-
+let MongoClient = require('mongodb').MongoClient;
+'use strict'
+const dotenv = require('dotenv')
 dotenv.config();
 
-const uri = process.env.CONNECTION_STRING; // "mongodb+srv://sa:sa@cluster0.zywwa.mongodb.net/tp2_proyecto_final?retryWrites=true&w=majority"
+const uri =  process.env.CONNECTION_STRING /* "mongodb+srv://sa:sa@cluster0.zywwa.mongodb.net/tp2_proyecto_final?retryWrites=true&w=majority"*/
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const DB_PROYECTO_FINAL = "tp2_proyecto_final"
@@ -18,4 +17,5 @@ async function getConnection (){
     return instance;
 }
 
-export {getConnection}
+module.exports =
+    {getConnection}
