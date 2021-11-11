@@ -4,10 +4,10 @@
  * Module dependencies.
  */
 
+
 var app = require('../app');
 var debug = require('debug')('tp2-proyecto-final:server');
 var http = require('http');
-
 /**
  * Get port from environment and store in Express.
  */
@@ -20,12 +20,19 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+const io = require('socket.io')(server)
+
+io.on("connection",socket=>{
+  socket.on("message", message=>{
+    console.log(message)
+  })
+})
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
+server.listen(port, () => console.log("server running on port: " + port));
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -88,3 +95,6 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+
+
