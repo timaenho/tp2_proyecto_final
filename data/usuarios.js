@@ -29,17 +29,34 @@ async function getUsuarioById (id) {
 } 
 
 async function addUsuario (usuario){
-
+    const clientMongo = await getConnection.getConnection();
+    
+    const userExists = await clientMongo
+        .db(DB_PROYECTO_FINAL)
+        .collection(COLLECTION_USUARIOS)
+        .findOne({googleAutToken: usuario.googleAutToken})
+    if(!userExists){
+        const result = await clientMongo    
+        .db(DB_PROYECTO_FINAL)
+        .collection(COLLECTION_USUARIOS)
+        .insertOne({...usuario})
+        return result;
+    }else if(userExists){
+        throw new Error("El usuario existe")
+    }
 }
 
 async function updateUsuario (usuario){
     const clientMongo = await getConnection.getConnection();
     const query = {_id: new ObjectId(usuario._id)}
     const nuevosValores = {
+        $set: 
+        {
         idiomaAprender: usuario.idiomaAprender,
         idiomaNativo: usuario.idiomaNativo,
         localizacion: usuario.localizacion,
         username: usuario.username
+    }
     }
     const result = await clientMongo
         .db(DB_PROYECTO_FINAL)

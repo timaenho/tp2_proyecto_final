@@ -14,6 +14,8 @@ const getUsuarioById = async function () {
 const updateUsuario =  async function () {
     return await data.updateUsuario(usuario)
 }
+
+
 console.log(data.getUsuarios())
 module.export = 
         {getUsuarios, 
