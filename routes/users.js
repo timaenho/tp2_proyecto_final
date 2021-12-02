@@ -13,7 +13,7 @@ router.get('/',async(req,res)=>{
   res.send(result)
 })
 
-router.post('/', async (req,res)=>{
+/* router.post('/', async (req,res)=>{
   try {
     console.log("entro")
     let usuario = req.body
@@ -23,12 +23,16 @@ router.post('/', async (req,res)=>{
   } catch (error) {
     res.status(401).send(error.message)
   }
+}) */
+
+router.get('/:mail', async (req,res)=>{
+  const user = await data.getUsuarioByMail(req.params.mail);
+  res.send(user); 
 })
 
-router.get('/:_id', async (req,res)=>{
-
-  const user = await data.getUsuarioById(req.params._id);
-  res.send(user); 
+router.post('/', async (req,res)=>{
+  const result = await data.addUser(req.body);
+  res.send(result);
 })
 
  router.put('/:id', async(req,res)=> {

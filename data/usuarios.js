@@ -1,6 +1,4 @@
 const getConnection = require( './connection.js')
-const bcrypt = require('bcrypt') 
-const jwt = require ('bcrypt')
 const ObjectId = require('bson').ObjectID
 
 // video 05/10
@@ -18,17 +16,31 @@ async function getUsuarios () {
     return usuarios
 }
 
-async function getUsuarioById (id) {
+async function getUsuarioByMail (_mail) {
     const clientMongo = await getConnection.getConnection();
     const usuario =  clientMongo
         .db(DB_PROYECTO_FINAL)
         .collection(COLLECTION_USUARIOS)
-        .findOne({_id: new ObjectId(id) })
+        .findOne({mail: _mail })
     return usuario;
 
 } 
 
-async function addUsuario (usuario){
+async function addUser(user){
+    const clientMongo = await getConnection.getConnection();
+    const result = clientMongo  
+                    .db(DB_PROYECTO_FINAL)
+                    .collection(COLLECTION_USUARIOS)
+                    .insertOne(user)
+        return result;
+}
+
+async function findByAuthToken (authToken){
+    
+}
+
+
+/* async function addUsuario (usuario){
     const clientMongo = await getConnection.getConnection();
     
     const userExists = await clientMongo
@@ -44,7 +56,7 @@ async function addUsuario (usuario){
     }else if(userExists){
         throw new Error("El usuario existe")
     }
-}
+} */
 
 async function updateUsuario (usuario){
     const clientMongo = await getConnection.getConnection();
@@ -66,19 +78,15 @@ async function updateUsuario (usuario){
     return result
 }
 
-async function findByCredentials (email, password){
-    // con bcrypt
-    // https://www.npmjs.com/package/bcrypt
-}
+
 
 async function generateToken (usuario){
-    // video 26/10
+    
 }
 
 module.exports = 
 {   getUsuarios,
     updateUsuario,
-    addUsuario,
+    addUser,
     generateToken,
-    findByCredentials,
-    getUsuarioById}
+    getUsuarioByMail}
