@@ -1,5 +1,8 @@
 const getConnection = require( './connection.js')
 const ObjectId = require('bson').ObjectID
+const bcrypt = require("bcryptjs")
+require('dotenv').config()
+var jwt = require("jsonwebtoken")
 
 // video 05/10
 
@@ -16,47 +19,45 @@ async function getUsuarios () {
     return usuarios
 }
 
-async function getUsuarioByMail (_mail) {
+async function getUsuarioByMail (_email) {
     const clientMongo = await getConnection.getConnection();
-    const usuario =  clientMongo
+    let usuario =  clientMongo
         .db(DB_PROYECTO_FINAL)
         .collection(COLLECTION_USUARIOS)
-        .findOne({mail: _mail })
-    return usuario;
-
+        .findOne({email: _email })
+  
+   return usuario
 } 
 
+async function getUserById (id){
+    const clientMongo = await getConnection.getConnection();
+    const query = {_id: new ObjectId(id)}
+    let usuario =  clientMongo
+        .db(DB_PROYECTO_FINAL)
+        .collection(COLLECTION_USUARIOS)
+        .findOne(query)
+  console.log(usuario)
+   return usuario
+}
+
 async function addUser(user){
-    const clientMongo = await getConnection.getConnection();
-    const result = clientMongo  
-                    .db(DB_PROYECTO_FINAL)
-                    .collection(COLLECTION_USUARIOS)
-                    .insertOne(user)
-        return result;
+  const clientMongo = await getConnection.getConnection()
+  user.password = await bcrypt.hash(user.password, 8)
+  
+  const result = clientMongo.db(DB_PROYECTO_FINAL)
+                            .collection(COLLECTION_USUARIOS)
+                            .insertOne(user)
+            return result;    
 }
 
-async function findByAuthToken (authToken){
-    
+async function addUserGoogle (user){
+    const clientMongo = await getConnection.getConnection()
+    const result = clientMongo.db(DB_PROYECTO_FINAL)
+                              .collection(COLLECTION_USUARIOS)
+                              .insertOne(user)
+              return result;   
 }
 
-
-/* async function addUsuario (usuario){
-    const clientMongo = await getConnection.getConnection();
-    
-    const userExists = await clientMongo
-        .db(DB_PROYECTO_FINAL)
-        .collection(COLLECTION_USUARIOS)
-        .findOne({googleAutToken: usuario.googleAutToken})
-    if(!userExists){
-        const result = await clientMongo    
-        .db(DB_PROYECTO_FINAL)
-        .collection(COLLECTION_USUARIOS)
-        .insertOne({...usuario})
-        return result;
-    }else if(userExists){
-        throw new Error("El usuario existe")
-    }
-} */
 
 async function updateUsuario (usuario){
     const clientMongo = await getConnection.getConnection();
@@ -64,10 +65,10 @@ async function updateUsuario (usuario){
     const nuevosValores = {
         $set: 
         {
-        idiomaAprender: usuario.idiomaAprender,
+        username: usuario.username,
+        idiomaAaprender: usuario.idiomaAaprender,
         idiomaNativo: usuario.idiomaNativo,
-        localizacion: usuario.localizacion,
-        username: usuario.username
+        friendlist: usuario.friendlist
     }
     }
     const result = await clientMongo
@@ -79,14 +80,40 @@ async function updateUsuario (usuario){
 }
 
 
+async function findByCredentials (email, password){
+    const clientMongo = await getConnection.getConnection()
+    const user = await clientMongo
+                            .db(DB_PROYECTO_FINAL)
+                            .collection(COLLECTION_USUARIOS)
+                            .findOne({email: email})
+    if(!user){
+        throw new Error('Credentiales no validas')
+    }
 
-async function generateToken (usuario){
-    
+    const isMatch = await bcrypt.compare(password, user.password)
+    if(!isMatch){
+        throw new Error('Credentiales no validas')
+    }
+
+    return user;
 }
+
+
+
+async function generateAuthToken(user) {
+    const token = jwt.sign({_id:user._id}, process.env.SECRET, {expiresIn:'2h'})
+    return token
+}
+
+
 
 module.exports = 
 {   getUsuarios,
     updateUsuario,
     addUser,
-    generateToken,
-    getUsuarioByMail}
+    addUserGoogle,
+    generateAuthToken,
+    findByCredentials,
+    getUsuarioByMail,
+    getUserById
+}

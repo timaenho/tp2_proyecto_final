@@ -1,7 +1,9 @@
 var express = require('express');
+const { route } = require('.');
 const { routes } = require('../app');
 var router = express.Router();
 const data = require('../data/usuarios') 
+const auth = require('../middleware/auth')
 
 /* GET users listing. */
 /* router.get('/', function(req, res, next) {
@@ -13,26 +15,36 @@ router.get('/',async(req,res)=>{
   res.send(result)
 })
 
-/* router.post('/', async (req,res)=>{
-  try {
-    console.log("entro")
-    let usuario = req.body
-    console.log(usuario)
-    const result = data.addUsuario(usuario)
-    res.send(result)
-  } catch (error) {
-    res.status(401).send(error.message)
-  }
-}) */
-
-router.get('/:mail', async (req,res)=>{
-  const user = await data.getUsuarioByMail(req.params.mail);
-  res.send(user); 
-})
-
-router.post('/', async (req,res)=>{
+router.post('/signup', async (req,res)=>{
   const result = await data.addUser(req.body);
   res.send(result);
+})
+
+router.post('/login', async(req,res)=>{
+  try{
+      const user = await data.findByCredentials(req.body.email, req.body.password)
+      const token = await data.generateAuthToken(user)
+      res.send({user, token})
+
+  }catch (error){
+      res.status(401).send(error.message)
+  }
+})
+
+router.post('/login/google', async(req,res)=>{
+  try {
+    console.log(req.body)
+    let email = req.body.email
+    let user = await data.getUsuarioByMail(email)
+    console.log(user)
+    if(!user){
+      user = await data.addUserGoogle(req.body)
+    }
+    const token = await data.generateAuthToken(user)
+    res.send({user, token})
+  } catch (error) {
+    res.status(401).send(error.message)
+  } 
 })
 
  router.put('/:id', async(req,res)=> {
@@ -42,10 +54,6 @@ router.post('/', async (req,res)=>{
   let userUpdated = await data.updateUsuario(usuario)
   res.send(userUpdated)
 })
-
-
-
-
 
 
 module.exports = router;
